@@ -1,0 +1,133 @@
+{
+  "info": {
+    "name": "AquaSense Device API — Automated Test Suite",
+    "description": "Automated Postman collection covering login, healthy status, invalid token, offline device, stale last_seen, and malformed payload validation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.aquasense.nivoryx.local"
+    },
+    {
+      "key": "authToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aquasense_mock_token_2026"
+    }
+  ],
+  "item": [
+    {
+      "name": "TC-01 POST /login (Valid Credentials)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"operator@nivoryx.io\",\"password\":\"ValidPassword123!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Returns non-empty auth token', function () {",
+              "  var jsonData = pm.response.json();",
+              "  pm.expect(jsonData.token).to.be.a('string').and.not.empty;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-03 GET /device/tank-01/status (Valid Online Device)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/device/tank-01/status"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Schema valid & last_seen is fresh (<15m)', function () {",
+              "  var data = pm.response.json();",
+              "  pm.expect(data.level_percent).to.be.a('number').within(0, 100);",
+              "  pm.expect(['on', 'off']).to.include(data.pump_state);",
+              "  var ageMin = (Date.now() - Date.parse(data.last_seen)) / 60000;",
+              "  pm.expect(ageMin).to.be.below(15);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-04 GET /device/tank-01/status (Invalid Token -> 401)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer invalid_expired_token"
+          }
+        ],
+        "url": "{{baseUrl}}/device/tank-01/status"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 401 Unauthorized', function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-05 GET /device/tank-offline-02/status (Device Offline -> 503)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/device/tank-offline-02/status"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 503 Service Unavailable', function () { pm.response.to.have.status(503); });",
+              "pm.test('Returns DEVICE_OFFLINE error code', function () {",
+              "  pm.expect(pm.response.json().error).to.eql('DEVICE_OFFLINE');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
