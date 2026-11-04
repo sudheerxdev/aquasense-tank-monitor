@@ -132,7 +132,7 @@ The status response is expected to contain:
 | TC-09 | `GET /device/{id}/status` | Negative | Unknown device ID | `404` with a clean error response | No |
 | TC-10 | `POST /login` | Edge | Repeated failed login attempts | `429` with `Retry-After` | No |
 
-![Uploading Screenshot 2026-11-05 030415.png…]()
+<img width="739" height="373" alt="Screenshot 2026-11-05 030415" src="https://github.com/user-attachments/assets/e9f1a9c6-97c2-4bf7-ae3b-bdba6f3e4f6a" />
 
 
 ### Automated test files
@@ -155,6 +155,9 @@ The page includes an interactive four-state simulator:
 4. Reconnect and reconcile
 
 ## AI-Assisted Development Note
+
+<img width="959" height="374" alt="Screenshot 2026-11-05 030303" src="https://github.com/user-attachments/assets/705141d1-df63-4617-a35c-e1c5f97986cc" />
+
 
 - Tool used: GitHub Copilot / ChatGPT.
 - Prompt 1: Build a React TypeScript dashboard from the supplied tank telemetry JSON.
