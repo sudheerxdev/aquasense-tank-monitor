@@ -71,8 +71,13 @@ The API tests use local mock responses. They do not require a live backend, clou
 
 <img width="959" height="417" alt="Screenshot 2026-11-05 030113" src="https://github.com/user-attachments/assets/9ad5c065-8b95-4a16-9622-49d81f774cb5" />
 
+<img width="959" height="412" alt="Screenshot 2026-11-05 030137" src="https://github.com/user-attachments/assets/1228de68-2c52-4268-8dcc-93c70e905937" />
+
 
 The dashboard uses the assignment JSON readings from `src/data/assignmentData.ts`.
+
+<img width="959" height="418" alt="Screenshot 2026-11-05 030203" src="https://github.com/user-attachments/assets/00571018-0049-4d10-9fda-ab650d4cb25b" />
+
 
 ### User flow
 
