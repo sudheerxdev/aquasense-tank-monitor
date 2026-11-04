@@ -69,6 +69,9 @@ The API tests use local mock responses. They do not require a live backend, clou
 
 ## Part A — Tank Level Dashboard
 
+<img width="959" height="417" alt="Screenshot 2026-11-05 030113" src="https://github.com/user-attachments/assets/9ad5c065-8b95-4a16-9622-49d81f774cb5" />
+
+
 The dashboard uses the assignment JSON readings from `src/data/assignmentData.ts`.
 
 ### User flow
