@@ -10,6 +10,10 @@
       "value": "https://api.aquasense.nivoryx.local"
     },
     {
+      "key": "simulatedNow",
+      "value": "2026-11-02T20:00:00Z"
+    },
+    {
       "key": "authToken",
       "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aquasense_mock_token_2026"
     }
@@ -70,7 +74,8 @@
               "  var data = pm.response.json();",
               "  pm.expect(data.level_percent).to.be.a('number').within(0, 100);",
               "  pm.expect(['on', 'off']).to.include(data.pump_state);",
-              "  var ageMin = (Date.now() - Date.parse(data.last_seen)) / 60000;",
+              "  var referenceNow = Date.parse(pm.collectionVariables.get('simulatedNow'));",
+              "  var ageMin = (referenceNow - Date.parse(data.last_seen)) / 60000;",
               "  pm.expect(ageMin).to.be.below(15);",
               "});"
             ]

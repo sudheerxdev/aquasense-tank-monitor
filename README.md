@@ -1,56 +1,167 @@
-# AquaSense — IoT Tank Monitoring & Device QA
+# AquaSense Mini-Build
 
-A responsive tank telemetry dashboard with historical level visualization, configurable low-level alerting, and a mock device API validation playground.
+An AI-assisted submission for the Nivoryx Systems AquaSense assignment. This project demonstrates a tank-level dashboard, a mocked device API test suite, and a mobile Wi-Fi interruption testing strategy.
 
-## Features
+## Assignment Deliverables
 
-- Current, minimum, and maximum tank-level metrics derived from telemetry readings.
-- Interactive tank visualization and historical level chart.
-- Low-level warning when the selected reading is below 20%.
-- Mock REST API scenarios for authentication and device status.
-- API test plan covering positive, negative, and boundary conditions.
-- Mobile connectivity test strategy for Wi-Fi interruptions.
+| Requirement | Implementation |
+|---|---|
+| Part A: current, minimum, and maximum tank level | Interactive dashboard in `src/App.tsx` |
+| Part A: alert below 20% | Strict `< 20%` alert with historical alert tracking |
+| Part A: AI usage note | In the dashboard and in this README |
+| Part B: API test plan with at least 8 cases | 10 cases documented below and in the dashboard |
+| Part B: automate at least 4 cases | 8 mocked JavaScript tests, plus a pytest suite |
+| Part B: Wi-Fi loss strategy | Written strategy and four-state interactive simulator |
 
-## Tech Stack
+## What This Demo Shows
 
-- React, TypeScript, Vite
-- Tailwind CSS
-- Recharts
-- Node.js test runner, pytest, and Postman collection
+- Current tank level, today's minimum, and today's maximum.
+- Interactive level chart and timestamp inspection.
+- Low-water warning when the selected reading is below 20%.
+- Alert history, stale/historical reading indicators, and CSV export.
+- Mock login and device-status API responses.
+- API test-plan filtering, pass-rate summary, and assertion details.
+- Offline device, invalid token, stale telemetry, and malformed payload scenarios.
+- Wi-Fi loss, cached state, retry, and idempotent reconnection workflow.
 
-## Getting Started
+## Sample Data Result
+
+The supplied readings are evaluated for `2026-11-02`:
+
+- Current/latest level at 20:00: **55%**
+- Today's minimum at 16:00: **18%**
+- Today's maximum at 06:00: **78%**
+- Low-level alert: **triggered at 18%**, because `18 < 20`
+- Exactly `20%` is treated as safe and does not trigger the alert
+
+## Run Locally
+
+Requirements: Node.js 18+ and npm.
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 npm run dev
 ```
 
-## Automated Tests
+Open `http://localhost:3000`.
 
-Run the JavaScript tests:
+The `--legacy-peer-deps` option is currently needed because the repository's existing Vite and esbuild version ranges have a peer-dependency mismatch.
+
+## Build and Validate
 
 ```bash
+npm run lint
+npm run build
 node --test tests/deviceApi.test.js
 ```
 
-Run the Python tests (after installing pytest):
+Run the Python suite after installing pytest:
 
 ```bash
 python -m pip install pytest
-python -m pytest tests/test_device_api.py
+python -m pytest -q tests/test_device_api.py
 ```
 
-The API scenarios use local mock responses; no live backend or physical IoT device is required.
+The API tests use local mock responses. They do not require a live backend, cloud account, or physical IoT device.
 
-## API Test Coverage
+## Part A — Tank Level Dashboard
 
-The test plan includes successful and failed login, authorization checks, online and offline devices, stale telemetry, malformed payloads, boundary tank levels, unknown devices, and login rate limiting.
+The dashboard uses the assignment JSON readings from `src/data/assignmentData.ts`.
 
-An importable Postman collection is available in `postman/AquaSense_API.postman_collection.json`.
+### User flow
 
-## Connectivity Testing
+1. Review the current level and daily minimum/maximum.
+2. Select a timestamp to inspect that reading.
+3. Select the 16:00 / 18% reading to view the low-water alert.
+4. Review the alert history and the chart threshold line.
+5. Export the readings as CSV if required.
 
-The mobile connectivity strategy covers interruption during an in-flight operation, offline state presentation, cached telemetry, retry/reconnection handling, and avoiding duplicate device commands.
+The alert condition is intentionally implemented as:
+
+```ts
+level_percent < 20
+```
+
+This prevents an incorrect alert at exactly 20% and preserves valid 0% readings during schema validation.
+
+## Part B — API Test Plan
+
+The assumed API is:
+
+```text
+POST /login
+GET /device/{id}/status
+```
+
+The status response is expected to contain:
+
+```json
+{
+  "level_percent": 55,
+  "pump_state": "off",
+  "last_seen": "2026-11-02T19:59:10Z"
+}
+```
+
+### Test cases
+
+| ID | Endpoint | Type | Scenario | Expected result | Automated |
+|---|---|---|---|---|---|
+| TC-01 | `POST /login` | Positive | Valid credentials | `200` and a non-empty auth token | Yes |
+| TC-02 | `POST /login` | Negative | Invalid password or missing credentials | `401`; no token issued | Yes |
+| TC-03 | `GET /device/{id}/status` | Positive | Authorized online device | `200` with valid telemetry and fresh `last_seen` | Yes |
+| TC-04 | `GET /device/{id}/status` | Negative | Missing, malformed, or expired token | `401`; telemetry withheld | Yes |
+| TC-05 | `GET /device/{id}/status` | Negative | Device offline or gateway unreachable | `503`/`504` with `DEVICE_OFFLINE` | Yes |
+| TC-06 | `GET /device/{id}/status` | Edge | `last_seen` is over 15 minutes old | Response is flagged as stale | Yes |
+| TC-07 | `GET /device/{id}/status` | Negative | Invalid level, pump state, or timestamp | Client rejects the schema | Yes |
+| TC-08 | `GET /device/{id}/status` | Edge | Boundary levels: 0%, 19%, 20%, 100% | Only values below 20% alert | Yes |
+| TC-09 | `GET /device/{id}/status` | Negative | Unknown device ID | `404` with a clean error response | No |
+| TC-10 | `POST /login` | Edge | Repeated failed login attempts | `429` with `Retry-After` | No |
+
+### Automated test files
+
+- `tests/deviceApi.test.js` — Node.js built-in test runner; 8 tests.
+- `tests/test_device_api.py` — pytest version of the mocked API checks.
+- `postman/AquaSense_API.postman_collection.json` — importable Postman examples.
+
+The Postman collection uses the deterministic collection variable `simulatedNow` (`2026-11-02T20:00:00Z`) so the freshness assertion is not affected by the computer's current date.
+
+## Mobile Wi-Fi Loss Strategy
+
+During a pump command or status request, drop Wi-Fi after the request is sent but before the response is received. Verify that the app exits the loading state within a bounded timeout, shows a clear connection-lost message, and does not crash. While offline, preserve the last valid telemetry with a “last synced” time instead of showing zero or blank data. When connectivity returns, re-authenticate, fetch authoritative device status, and retry commands with an idempotency key or a status check so a delayed request cannot toggle the pump twice.
+
+The page includes an interactive four-state simulator:
+
+1. Online dispatch
+2. Wi-Fi dropped mid-flight
+3. Offline cached snapshot
+4. Reconnect and reconcile
+
+## AI-Assisted Development Note
+
+- Tool used: GitHub Copilot / ChatGPT.
+- Prompt 1: Build a React TypeScript dashboard from the supplied tank telemetry JSON.
+- Prompt 2: Write mocked API tests for login, device status, stale telemetry, and malformed responses.
+- The generated alert initially used `<= 20` instead of the required strict `< 20`.
+- I changed the comparator so exactly 20% does not trigger an alert.
+- I added historical breach tracking so the 18% reading remains visible after the level recovers.
+- The validator initially used a truthiness check that rejected a valid 0% reading.
+- I replaced it with explicit numeric and range validation, then ran the automated tests.
+
+## Deployment on Vercel
+
+Recommended Vercel settings:
+
+```text
+Framework preset: Vite
+Build command: npm run build
+Output directory: dist
+Install command: npm install --legacy-peer-deps
+```
+
+This is a static frontend demonstration. Vercel will serve the dashboard, images, local mock API scenarios, charts, simulators, CSV export, and theme controls.
+
+It does not connect to a real backend, authenticate real users, send real email alerts, communicate with physical IoT hardware, or control a real pump.
 
 ## Project Structure
 
@@ -58,6 +169,8 @@ The mobile connectivity strategy covers interruption during an in-flight operati
 src/
   App.tsx
   data/
+    assignmentData.ts
+    exportableFiles.ts
 tests/
   deviceApi.test.js
   test_device_api.py
@@ -65,8 +178,7 @@ postman/
   AquaSense_API.postman_collection.json
 public/
   aquasense-hero-banner.svg
+  api-device-architecture.png
+  low-water-alert.png
+  wifi-recovery-flow.png
 ```
-
-## Notes
-
-This project is a frontend demonstration using sample telemetry and mocked API responses. It does not communicate with a physical tank sensor or control a real pump.

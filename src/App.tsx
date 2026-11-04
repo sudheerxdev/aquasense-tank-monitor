@@ -87,6 +87,8 @@ export default function App() {
   // Interactive API Sandbox State
   const [sandboxDevice, setSandboxDevice] = useState<string>("tank-01");
   const [sandboxTokenMode, setSandboxTokenMode] = useState<"valid" | "expired">("valid");
+  const [sandboxLoading, setSandboxLoading] = useState<boolean>(false);
+  const [sandboxError, setSandboxError] = useState<string | null>(null);
 
   // Deliverables Viewer & Copy States
   const [activeFileIndex, setActiveFileIndex] = useState<number>(0);
@@ -237,6 +239,16 @@ export default function App() {
     return testResults.find((r) => r.id === selectedTestId) || testResults[0];
   }, [testResults, selectedTestId]);
 
+  const testSummary = useMemo(() => {
+    const passed = testResults.filter((result) => result.passed).length;
+    return {
+      total: testResults.length,
+      passed,
+      failed: testResults.length - passed,
+      passRate: testResults.length === 0 ? 0 : Math.round((passed / testResults.length) * 100),
+    };
+  }, [testResults]);
+
   // Live API Sandbox Result
   const sandboxResponse = useMemo(() => {
     const token =
@@ -309,6 +321,17 @@ export default function App() {
     const fresh = runAutomatedTests();
     setTestResults(fresh);
     setLastRunTimestamp(new Date().toISOString().slice(0, 19) + "Z");
+  };
+
+  const handleProbeRequest = () => {
+    setSandboxLoading(true);
+    setSandboxError(null);
+    window.setTimeout(() => {
+      if (sandboxDevice === "tank-offline-02") {
+        setSandboxError("Device is offline. Showing the last known response; retry after connectivity is restored.");
+      }
+      setSandboxLoading(false);
+    }, 450);
   };
 
   // SVG Chart Geometry
@@ -467,20 +490,93 @@ export default function App() {
           </div>
         </section>
 
+        {/* Guided walkthrough for first-time reviewers */}
+        <section
+          aria-labelledby="walkthrough-title"
+          className="p-6 md:p-8 rounded-2xl bg-slate-900 text-white shadow-sm"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+            <div className="max-w-2xl">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Start here · 4-minute walkthrough</div>
+              <h2 id="walkthrough-title" className="font-display text-2xl md:text-3xl font-bold mt-2">
+                Review the submission in four simple steps
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                This page is interactive. Use the buttons below instead of reading every section in order.
+                Each step maps directly to the assignment requirements.
+              </p>
+            </div>
+            <a
+              href="#dashboard"
+              className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-slate-900 bg-white rounded-lg hover:bg-sky-50 transition-colors whitespace-nowrap"
+            >
+              Begin with Part A
+              <ArrowUpRight className="w-4 h-4 ml-1.5" />
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mt-6">
+            {[
+              {
+                step: "01",
+                title: "Check the live reading",
+                text: "See current, minimum, maximum, and freshness status from the supplied JSON data.",
+                href: "#dashboard",
+                action: "Open dashboard",
+              },
+              {
+                step: "02",
+                title: "Trigger the alert",
+                text: "Use the 16:00 breach button to verify the strict below-20% alert behaviour.",
+                href: "#dashboard",
+                action: "Inspect 18% breach",
+              },
+              {
+                step: "03",
+                title: "Run API checks",
+                text: "Review the 10-case plan and rerun the 8 automated mocked API tests.",
+                href: "#api-testing",
+                action: "Open test suite",
+              },
+              {
+                step: "04",
+                title: "Test Wi-Fi recovery",
+                text: "Walk through connection loss, cached data, retry, and idempotent reconciliation.",
+                href: "#mobile-wifi",
+                action: "Open Wi-Fi strategy",
+              },
+            ].map((item) => (
+              <a
+                key={item.step}
+                href={item.href}
+                className="group p-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 transition-colors"
+              >
+                <div className="font-mono text-xs font-semibold text-sky-300">{item.step}</div>
+                <div className="mt-2 font-semibold text-white">{item.title}</div>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-300">{item.text}</p>
+                <div className="mt-3 text-xs font-semibold text-sky-300 group-hover:text-white">{item.action} →</div>
+              </a>
+            ))}
+          </div>
+        </section>
+
         {/* PART A: TANK LEVEL DASHBOARD */}
         <section id="dashboard" className="space-y-6 scroll-mt-20">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <span>Part A</span>
+                <span>Monitoring overview</span>
                 <span aria-hidden="true">·</span>
-                <span>Tank Level Dashboard</span>
+                <span>For home and facility operators</span>
                 <span aria-hidden="true">·</span>
                 <span className="font-mono tabular-nums">{readings.length} telemetry frames</span>
               </div>
               <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">
-                01. Real-Time Tank Telemetry &amp; Threshold Alerting
+                Tank level at a glance
               </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                See how much water is available now, what the lowest and highest levels were today, and whether the tank needs attention.
+              </p>
             </div>
 
             {/* Segmented Timestamp Selector + Export CSV Action */}
@@ -521,6 +617,58 @@ export default function App() {
               </button>
             </div>
           </div>
+
+          <div className="p-5 md:p-6 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-900">
+            <div className="flex items-start gap-3">
+              <Droplets className="w-5 h-5 mt-0.5 text-sky-600 dark:text-sky-400 shrink-0" />
+              <div>
+                <h3 className="font-display text-base font-bold text-slate-900 dark:text-slate-100">
+                  What am I looking at?
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                  This is a sample day of tank readings from 06:00 to 20:00. The percentage is the estimated water
+                  level: 100% means full and 0% means empty. A reading below 20% is treated as a low-water warning.
+                  The latest reading is selected automatically.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+              {[
+                ["Current level", "How much water is available in the selected reading."],
+                ["Today’s minimum / maximum", "The lowest and highest recorded levels in this sample day."],
+                ["Red alert", "Appears when the selected level is below the 20% safety reserve."],
+              ].map(([title, description]) => (
+                <div key={title} className="p-3 rounded-lg bg-white/70 dark:bg-slate-900/60 border border-sky-100 dark:border-sky-900/70">
+                  <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">{title}</div>
+                  <div className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">{description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <figure className="overflow-hidden rounded-xl bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/70">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] items-center">
+              <img
+                src="/low-water-alert.png"
+                alt="Smart water tank showing a low-water warning and pump safety pause"
+                className="w-full h-48 md:h-full min-h-48 object-contain bg-white"
+                loading="lazy"
+              />
+              <figcaption className="p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                <div className="text-xs font-semibold uppercase tracking-wide text-red-700 dark:text-red-400">
+                  Why the alert matters
+                </div>
+                <h3 className="font-display text-lg font-bold text-slate-900 dark:text-slate-100 mt-1">
+                  Protect the pump before the tank runs dry
+                </h3>
+                <p className="mt-2">
+                  When the level drops below 20%, AquaSense highlights the condition so an operator can act before
+                  the pump runs without enough water. Select the <strong>16:00 (18%)</strong> reading above to see
+                  this warning in action.
+                </p>
+              </figcaption>
+            </div>
+          </figure>
 
           {/* Requirement A.2: Alert Banner when level falls below 20% */}
           {isBelowThreshold ? (
@@ -597,6 +745,77 @@ export default function App() {
               )}
             </div>
           )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span>Telemetry freshness</span>
+                <span
+                  className={`font-semibold ${
+                    selectedIndex === readings.length - 1
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-amber-700 dark:text-amber-400"
+                  }`}
+                >
+                  {selectedIndex === readings.length - 1 ? "LATEST" : "HISTORICAL"}
+                </span>
+              </div>
+              <div className="mt-2 font-mono text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {formatDateDisplay(activeReading.timestamp)} {formatTimeShort(activeReading.timestamp)}
+              </div>
+              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Last received telemetry frame
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span>Alert history</span>
+                <span className="font-semibold text-red-700 dark:text-red-400">
+                  {breachReadings.length} breach{breachReadings.length === 1 ? "" : "es"}
+                </span>
+              </div>
+              <div className="mt-2 space-y-1.5">
+                {breachReadings.length > 0 ? (
+                  breachReadings.map(({ reading, index }) => (
+                    <button
+                      key={`${reading.timestamp}-${index}`}
+                      type="button"
+                      onClick={() => {
+                        setSelectedIndex(index);
+                        setSimulatedLevel(null);
+                      }}
+                      className="w-full flex items-center justify-between text-xs font-mono text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 rounded px-1.5 py-1 cursor-pointer"
+                    >
+                      <span>{formatTimeShort(reading.timestamp)}</span>
+                      <span>{reading.level_percent}% · LOW LEVEL</span>
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-xs text-slate-500 dark:text-slate-400">No low-level alerts recorded.</span>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Active reading</div>
+              <div className="mt-2 flex items-end gap-2">
+                <span className="font-display text-3xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+                  {currentLevel}%
+                </span>
+                <span
+                  className={`mb-1 text-xs font-semibold ${
+                    isBelowThreshold ? "text-red-700 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"
+                  }`}
+                >
+                  {isBelowThreshold ? "ACTION REQUIRED" : "NOMINAL"}
+                </span>
+              </div>
+              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Threshold: below {LOW_LEVEL_THRESHOLD}%
+              </div>
+            </div>
+          </div>
 
           {/* Threshold Email Notification Configuration Panel */}
           <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -1779,6 +1998,23 @@ export default function App() {
           </div>
         </section>
 
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-xl bg-slate-900 text-white">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-sky-300">Dashboard complete</div>
+            <h2 className="font-display text-xl font-bold mt-1">Next, check whether the device API is reliable</h2>
+            <p className="text-sm text-slate-300 mt-1">
+              The next section tests login, device status, offline devices, stale data, and malformed responses.
+            </p>
+          </div>
+          <a
+            href="#api-testing"
+            className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-slate-900 bg-white rounded-lg hover:bg-sky-50 transition-colors whitespace-nowrap"
+          >
+            Continue to API testing
+            <ArrowDownRight className="w-4 h-4 ml-1.5" />
+          </a>
+        </section>
+
         {/* PART A.3: AI CODING ASSISTANT NOTE (5-10 LINES) */}
         <section id="ai-note" className="space-y-4 scroll-mt-20">
           <div className="flex items-center justify-between">
@@ -1853,6 +2089,9 @@ export default function App() {
               <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">
                 03. Device API Test Plan (10 Cases) &amp; Automated Test Suite
               </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Filter the plan by test type, review the pass summary, then select a case to inspect its request and assertions.
+              </p>
             </div>
 
             {/* Category Filter Controls */}
@@ -1871,6 +2110,38 @@ export default function App() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <figure className="overflow-hidden rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <img
+              src="/api-device-architecture.png"
+              alt="Diagram showing a mobile app communicating through a cloud API with an IoT water tank controller and pump"
+              className="w-full max-h-80 object-contain bg-white"
+              loading="lazy"
+            />
+            <figcaption className="px-5 py-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800">
+              How the tested system works: the mobile app sends login and device-status requests through the cloud
+              API, which communicates with the connected tank controller and pump.
+            </figcaption>
+          </figure>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: "Total tests", value: testSummary.total, tone: "text-slate-900 dark:text-slate-100" },
+              { label: "Passed", value: testSummary.passed, tone: "text-emerald-700 dark:text-emerald-400" },
+              { label: "Failed", value: testSummary.failed, tone: "text-red-700 dark:text-red-400" },
+              { label: "Pass rate", value: `${testSummary.passRate}%`, tone: "text-sky-700 dark:text-sky-400" },
+            ].map((metric) => (
+              <div
+                key={metric.label}
+                className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
+              >
+                <div className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">{metric.label}</div>
+                <div className={`mt-1 font-display text-2xl font-bold font-mono tabular-nums ${metric.tone}`}>
+                  {metric.value}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Part B.1: 10-Case Test Plan Table */}
@@ -2091,13 +2362,32 @@ export default function App() {
                       <option value="valid">Token: Valid Bearer JWT</option>
                       <option value="expired">Token: Expired / Invalid (401)</option>
                     </select>
+                    <button
+                      type="button"
+                      onClick={handleProbeRequest}
+                      disabled={sandboxLoading}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-md cursor-pointer"
+                    >
+                      <Play className="w-3 h-3" />
+                      {sandboxLoading ? "Requesting..." : "Send Request"}
+                    </button>
                   </div>
                 </div>
+
+                {sandboxError && (
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200"
+                  >
+                    <WifiOff className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{sandboxError}</span>
+                  </div>
+                )}
 
                 <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
                   <div>
                     <span className="font-semibold text-slate-900 dark:text-slate-100">
-                      HTTP {sandboxResponse.res.status}
+                      {sandboxLoading ? "Request in progress..." : `HTTP ${sandboxResponse.res.status}`}
                     </span>
                     <span className="mx-2 text-slate-400">·</span>
                     <span className="text-slate-700 dark:text-slate-300">
@@ -2140,6 +2430,9 @@ export default function App() {
               <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">
                 04. Testing Mobile App Behaviour When Device Loses Wi-Fi Mid-Operation
               </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Use the four numbered controls to simulate the complete offline-to-reconnected device workflow.
+              </p>
             </div>
 
             <button
@@ -2164,6 +2457,19 @@ export default function App() {
             <p className="text-sm md:text-base text-slate-800 dark:text-slate-200 leading-relaxed">
               {MOBILE_WIFI_PARAGRAPH}
             </p>
+
+            <figure className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white">
+              <img
+                src="/wifi-recovery-flow.png"
+                alt="Four-step Wi-Fi recovery flow showing online operation, connection loss, offline cache, and reconnection"
+                className="w-full max-h-80 object-contain"
+                loading="lazy"
+              />
+              <figcaption className="px-5 py-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800">
+                The expected recovery journey: continue safely when online, detect a mid-operation connection loss,
+                preserve the last known state while offline, then reconcile with the device after reconnecting.
+              </figcaption>
+            </figure>
 
             {/* Interactive Mid-Operation Wi-Fi Drop & Idempotency Simulator */}
             <div className="pt-5 border-t border-slate-200 dark:border-slate-800 space-y-4">
