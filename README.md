@@ -2,7 +2,8 @@
 
 An AI-assisted submission for the Nivoryx Systems AquaSense assignment. This project demonstrates a tank-level dashboard, a mocked device API test suite, and a mobile Wi-Fi interruption testing strategy.
 
-![AquaSense Dashboard](public/Screenshot 2026-11-05 030056.png)
+<img width="949" height="418" alt="Screenshot 2026-11-05 030056" src="https://github.com/user-attachments/assets/2be7db77-6df3-4e10-b818-ddff60768e10" />
+
 
 
 ## Assignment Deliverables
@@ -92,6 +93,8 @@ The alert condition is intentionally implemented as:
 ```ts
 level_percent < 20
 ```
+<img width="959" height="424" alt="Screenshot 2026-11-05 030250" src="https://github.com/user-attachments/assets/bbbd1b02-eb01-444a-aae8-fffd5c0793c4" />
+
 
 This prevents an incorrect alert at exactly 20% and preserves valid 0% readings during schema validation.
 
@@ -128,6 +131,9 @@ The status response is expected to contain:
 | TC-08 | `GET /device/{id}/status` | Edge | Boundary levels: 0%, 19%, 20%, 100% | Only values below 20% alert | Yes |
 | TC-09 | `GET /device/{id}/status` | Negative | Unknown device ID | `404` with a clean error response | No |
 | TC-10 | `POST /login` | Edge | Repeated failed login attempts | `429` with `Retry-After` | No |
+
+![Uploading Screenshot 2026-11-05 030415.png…]()
+
 
 ### Automated test files
 
