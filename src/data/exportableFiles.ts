@@ -6,7 +6,7 @@ export interface DeliverableFile {
   content: string;
 }
 
-export const README_CONTENT = `# AquaSense Mini-Build — Nivoryx Systems Assignment
+export const README_CONTENT = `# AquaSense Mini-Build — AquaSense Assignment
 
 This repository contains the complete submission for the **AquaSense Mini-Build** assignment (**Part A: Tank Level Dashboard** and **Part B: API Testing**).
 
@@ -89,7 +89,7 @@ const LOW_LEVEL_THRESHOLD = 20;
 function mockApiRequest(method, path, options = {}) {
   if (method === "POST" && path === "/login") {
     const { username, password } = options.body || {};
-    if (username === "operator@nivoryx.io" && password === "ValidPassword123!") {
+    if (username === "operator@example.com" && password === "ValidPassword123!") {
       return {
         status: 200,
         body: { token: VALID_TOKEN, token_type: "Bearer", expires_in: 3600 },
@@ -164,7 +164,7 @@ function validateStatusPayload(payload) {
 describe("AquaSense Device API Automated Suite", () => {
   test("TC-01: POST /login with valid credentials returns 200 and auth token", () => {
     const res = mockApiRequest("POST", "/login", {
-      body: { username: "operator@nivoryx.io", password: "ValidPassword123!" },
+      body: { username: "operator@example.com", password: "ValidPassword123!" },
     });
     expect(res.status).toBe(200);
     expect(typeof res.body.token).toBe("string");
@@ -173,7 +173,7 @@ describe("AquaSense Device API Automated Suite", () => {
 
   test("TC-02: POST /login with invalid password returns 401 Unauthorized", () => {
     const res = mockApiRequest("POST", "/login", {
-      body: { username: "operator@nivoryx.io", password: "wrong_password" },
+      body: { username: "operator@example.com", password: "wrong_password" },
     });
     expect(res.status).toBe(401);
     expect(res.body.token).toBeUndefined();
@@ -252,7 +252,7 @@ def mock_api_request(method: str, path: str, headers: dict = None, json_body: di
     json_body = json_body or {}
 
     if method == "POST" and path == "/login":
-        if json_body.get("username") == "operator@nivoryx.io" and json_body.get("password") == "ValidPassword123!":
+        if json_body.get("username") == "operator@example.com" and json_body.get("password") == "ValidPassword123!":
             return 200, {"token": VALID_TOKEN, "token_type": "Bearer", "expires_in": 3600}
         return 401, {"error": "INVALID_CREDENTIALS"}
 
@@ -291,13 +291,13 @@ def validate_telemetry(payload: dict):
 
 
 def test_tc01_login_success():
-    status, body = mock_api_request("POST", "/login", json_body={"username": "operator@nivoryx.io", "password": "ValidPassword123!"})
+    status, body = mock_api_request("POST", "/login", json_body={"username": "operator@example.com", "password": "ValidPassword123!"})
     assert status == 200
     assert isinstance(body.get("token"), str) and len(body["token"]) > 20
 
 
 def test_tc02_login_invalid_credentials():
-    status, body = mock_api_request("POST", "/login", json_body={"username": "operator@nivoryx.io", "password": "bad"})
+    status, body = mock_api_request("POST", "/login", json_body={"username": "operator@example.com", "password": "bad"})
     assert status == 401
     assert "token" not in body
 
@@ -358,7 +358,7 @@ export const POSTMAN_COLLECTION_CONTENT = JSON.stringify(
           url: "{{baseUrl}}/login",
           body: {
             mode: "raw",
-            raw: JSON.stringify({ username: "operator@nivoryx.io", password: "ValidPassword123!" }),
+            raw: JSON.stringify({ username: "operator@example.com", password: "ValidPassword123!" }),
           },
         },
         event: [
