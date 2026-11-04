@@ -30,7 +30,7 @@ import {
   validateTelemetrySchema,
   type TankReading,
   type AutomatedTestResult,
-} from "./data/telemetryData";
+} from "./data/assignmentData";
 import { DELIVERABLE_FILES } from "./data/exportableFiles";
 
 function formatTimeShort(isoTimestamp: string): string {
