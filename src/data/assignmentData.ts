@@ -34,8 +34,8 @@ export const API_TEST_PLAN: TestCaseItem[] = [
     endpoint: "POST /login",
     category: "Positive",
     title: "Valid credentials return authentication token",
-    preconditions: "Registered user account exists (operator@nivoryx.io)",
-    requestSummary: 'POST /login { "username": "operator@nivoryx.io", "password": "ValidPassword123!" }',
+    preconditions: "Registered user account exists (operator@example.com)",
+    requestSummary: 'POST /login { "username": "operator@example.com", "password": "ValidPassword123!" }',
     expectedStatus: 200,
     expectedBehaviour: "Returns HTTP 200 with non-empty Bearer JWT string in { token, expires_in: 3600 }.",
     automated: true,
@@ -46,7 +46,7 @@ export const API_TEST_PLAN: TestCaseItem[] = [
     category: "Negative",
     title: "Invalid password or missing credentials rejected",
     preconditions: "Endpoint reachable",
-    requestSummary: 'POST /login { "username": "operator@nivoryx.io", "password": "wrong_password" }',
+    requestSummary: 'POST /login { "username": "operator@example.com", "password": "wrong_password" }',
     expectedStatus: 401,
     expectedBehaviour: "Returns HTTP 401 Unauthorized with error message and no token issued.",
     automated: true,
@@ -176,7 +176,7 @@ export function mockApiRequest(
   if (method === "POST" && path === "/login") {
     const username = options?.body?.username;
     const password = options?.body?.password;
-    if (username === "operator@nivoryx.io" && password === "ValidPassword123!") {
+    if (username === "operator@example.com" && password === "ValidPassword123!") {
       return {
         status: 200,
         body: {
@@ -318,7 +318,7 @@ export function runAutomatedTests(): AutomatedTestResult[] {
 
   // Test 1: TC-01 Valid Login
   {
-    const reqBody = { username: "operator@nivoryx.io", password: "ValidPassword123!" };
+    const reqBody = { username: "operator@example.com", password: "ValidPassword123!" };
     const res = mockApiRequest("POST", "/login", { body: reqBody });
     const assertions = [
       {
@@ -347,7 +347,7 @@ export function runAutomatedTests(): AutomatedTestResult[] {
 
   // Test 2: TC-02 Invalid Login
   {
-    const reqBody = { username: "operator@nivoryx.io", password: "wrong_password" };
+    const reqBody = { username: "operator@example.com", password: "wrong_password" };
     const res = mockApiRequest("POST", "/login", { body: reqBody });
     const assertions = [
       {
