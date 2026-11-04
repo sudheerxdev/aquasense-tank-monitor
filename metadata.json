@@ -1,6 +1,6 @@
 {
-  "name": "AquaSense Tank Telemetry & QA Suite",
-  "description": "Tank level monitoring dashboard, low-level alert system, and automated device API test suite for the Nivoryx Systems AquaSense assignment.",
+  "name": "AquaSense Tank Monitoring & Device QA",
+  "description": "IoT tank monitoring dashboard with telemetry visualization, low-level alerts, and mock device API testing.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
