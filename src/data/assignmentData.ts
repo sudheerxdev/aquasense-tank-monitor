@@ -546,7 +546,7 @@ export function runAutomatedTests(): AutomatedTestResult[] {
 }
 
 export const AI_ASSISTANT_NOTE = {
-  toolUsed: "Claude 3.7 Sonnet (via Cursor IDE)",
+  toolUsed: "AI coding assistant",
   prompt1:
     'Prompt 1: "Build a React TypeScript dashboard component for AquaSense that parses this JSON array of tank readings, displays the current tank level alongside today\'s min and max percentages, and triggers a high-visibility low-water alert banner whenever the level drops below 20%."',
   prompt2:
