@@ -30,7 +30,7 @@ import {
   validateTelemetrySchema,
   type TankReading,
   type AutomatedTestResult,
-} from "./data/assignmentData";
+} from "./data/telemetryData";
 import { DELIVERABLE_FILES } from "./data/exportableFiles";
 
 function formatTimeShort(isoTimestamp: string): string {
@@ -355,7 +355,7 @@ export default function App() {
             href="#ai-note"
             className="hover:text-slate-900 dark:hover:text-slate-100 hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            AI Assistant Note
+            AI Development
           </a>
           <a
             href="#api-testing"
@@ -426,7 +426,7 @@ export default function App() {
             <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span>AquaSense</span>
               <span aria-hidden="true">·</span>
-              <span>Technical Assignment Submission</span>
+              <span>IoT Monitoring Project</span>
               <span aria-hidden="true">·</span>
               <span className="font-mono tabular-nums">Dataset 2026-11-02</span>
             </div>
@@ -1007,7 +1007,7 @@ export default function App() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    Reset to Assignment JSON
+                    Reset to Sample Data
                   </button>
                 )}
               </div>
@@ -1669,12 +1669,12 @@ export default function App() {
             );
           })()}
 
-          {/* Assignment JSON Telemetry Table */}
+          {/* Telemetry Data Table */}
           <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <Droplets className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                <span className="font-semibold text-slate-900 dark:text-slate-100">Assignment Mock Data Log</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">Sample Telemetry Log</span>
                 <span aria-hidden="true">·</span>
                 <span className="font-mono tabular-nums">{readings.length} JSON Records</span>
               </div>
