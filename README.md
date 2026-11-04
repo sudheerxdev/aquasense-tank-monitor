@@ -2,7 +2,7 @@
 
 An AI-assisted submission for the Nivoryx Systems AquaSense assignment. This project demonstrates a tank-level dashboard, a mocked device API test suite, and a mobile Wi-Fi interruption testing strategy.
 
-![AquaSense Dashboard](public/Screenshot 2026-11-05 030056.png)
+![Uploading Screenshot 2026-11-05 030056.png…]()
 
 
 ## Assignment Deliverables
