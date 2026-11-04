@@ -61,8 +61,8 @@ export default function App() {
   const [newLevelInput, setNewLevelInput] = useState<string>("16");
 
   // Email Alert Notification Configuration State
-  const [alertEmailInput, setAlertEmailInput] = useState<string>("operator@nivoryx.io");
-  const [savedAlertEmail, setSavedAlertEmail] = useState<string>("operator@nivoryx.io");
+  const [alertEmailInput, setAlertEmailInput] = useState<string>("operator@example.com");
+  const [savedAlertEmail, setSavedAlertEmail] = useState<string>("operator@example.com");
   const [emailAlertsEnabled, setEmailAlertsEnabled] = useState<boolean>(true);
   const [emailStatusMessage, setEmailStatusMessage] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -424,7 +424,7 @@ export default function App() {
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-slate-200 dark:border-slate-800">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <span>Nivoryx Systems Private Limited</span>
+              <span>AquaSense</span>
               <span aria-hidden="true">·</span>
               <span>Technical Assignment Submission</span>
               <span aria-hidden="true">·</span>
@@ -635,7 +635,7 @@ export default function App() {
                 const trimmed = alertEmailInput.trim();
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(trimmed)) {
-                  setEmailError("Please enter a valid email address (e.g., operator@nivoryx.io).");
+                  setEmailError("Please enter a valid email address (e.g., operator@example.com).");
                   setEmailStatusMessage(null);
                   return;
                 }
@@ -2361,7 +2361,7 @@ export default function App() {
       {/* Quiet Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 px-6 mt-12 transition-colors duration-150">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-          <div>AquaSense Mini-Build · Prepared for Nivoryx Systems Private Limited</div>
+          <div>AquaSense Mini-Build · Prepared for AquaSense</div>
           <div className="flex items-center gap-4">
             <a href="#dashboard" className="hover:text-slate-900 dark:hover:text-slate-100">
               Part A: Tank Dashboard
